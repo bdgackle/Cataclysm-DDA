@@ -36,8 +36,16 @@ extern const int core_version;
 extern const int savegame_version;
 extern int savegame_loading_version;
 
+/**
+ * Format of dump file
+ *
+ * Calling @ref game::dump_stats() dumps a bunch of information to a file.  This type enumerates
+ * the available formats of that file.
+ */
 enum class dump_mode {
+    /** Dumped file is formatted with tab-separated-values */
     TSV,
+    /** Dumped file is formatted as an HTML table */
     HTML
 };
 
