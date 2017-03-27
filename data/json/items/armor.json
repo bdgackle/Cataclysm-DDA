@@ -504,7 +504,7 @@
     "warmth": 40,
     "material_thickness": 5,
     "environmental_protection": 1,
-    "flags": [ "VARSIZE", "POCKETS", "WATERPROOF" ]
+    "flags": [ "VARSIZE", "POCKETS", "WATERPROOF", "RAINPROOF" ]
   },
   {
     "id": "armor_plarmor",
@@ -589,7 +589,7 @@
     "warmth": 40,
     "material_thickness": 5,
     "environmental_protection": 2,
-    "flags": [ "VARSIZE", "POCKETS", "STURDY", "WATERPROOF" ]
+    "flags": [ "VARSIZE", "POCKETS", "STURDY", "WATERPROOF", "RAINPROOF" ]
   },
   {
     "id": "armor_scrapsuit",
@@ -4316,7 +4316,7 @@
     "warmth": 35,
     "material_thickness": 3,
     "environmental_protection": 4,
-    "flags": [ "VARSIZE", "WATERPROOF", "SUN_GLASSES" ]
+    "flags": [ "VARSIZE", "WATERPROOF", "SUN_GLASSES", "RAINPROOF" ]
   },
   {
     "id": "helmet_plate",
@@ -4381,7 +4381,7 @@
     "warmth": 40,
     "material_thickness": 3,
     "environmental_protection": 7,
-    "flags": [ "VARSIZE", "STURDY", "WATERPROOF", "SUN_GLASSES" ]
+    "flags": [ "VARSIZE", "STURDY", "WATERPROOF", "SUN_GLASSES", "RAINPROOF" ]
   },
   {
     "id": "helmet_skid",
