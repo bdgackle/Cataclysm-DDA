@@ -80,6 +80,18 @@ enum season_type {
     WINTER = 3
 };
 
+/** Phases of a day */
+enum day_phase {
+    /** Natural sunlight is slowly increasing prior to sunrise */
+    DAWN  = 0,
+    /** Natural sunlight is at maximum for current date */
+    DAY   = 1,
+    /** Natural sunlight is slowly decreasing prior to sunset */
+    DUSK  = 2,
+    /** Natural sunlight is at zero */
+    NIGHT = 3
+};
+
 /** Phases of the moon */
 enum moon_phase {
     /** New (completely dark) moon */
@@ -143,6 +155,34 @@ class calendar
          */
         void sync();
 
+        /**
+         * Interpolate a value that varies smoothly over a season
+         *
+         * Given values at start and end of season, interpolate a value based on the current day.
+         *
+         * @param[in] start Value at start of season
+         * @param[in] end Value at end of season
+         * @return Interpolated value based on current day
+         */
+        double interpolate_within_season( double start, double end ) const;
+
+        /**
+         * Returns number of moon quarters that are currently lit
+         *
+         * Translates the current moon phase into a 'fullness' level that indicates how many
+         * quarters are visible.
+         */
+        int moon_quarters_lit() const;
+
+        /**
+         * Calculate completeness of twilight
+         *
+         * Helper function for interpolating values that change as the sun rises and sets.
+         *
+         * @returns 1 for full daylight, 0.0 at night, and interpolates between them at dawn and dusk.
+         */
+        double twilight_ratio() const;
+
     public:
         /** Initializers */
         /**
@@ -182,8 +222,16 @@ class calendar
         calendar  operator - ( int rhs ) const;
         calendar  operator + ( const calendar &rhs ) const;
         calendar  operator + ( int rhs ) const;
-        bool      operator ==( int rhs ) const;
+        bool      operator < ( const calendar &rhs ) const;
+        bool      operator < ( int rhs ) const;
+        bool      operator <=( const calendar &rhs ) const;
+        bool      operator <=( int rhs ) const;
+        bool      operator > ( const calendar &rhs ) const;
+        bool      operator > ( int rhs ) const;
+        bool      operator >=( const calendar &rhs ) const;
+        bool      operator >=( int rhs ) const;
         bool      operator ==( const calendar &rhs ) const;
+        bool      operator ==( int rhs ) const;
 
         /** Increases turn_number by 1. (6 seconds) */
         void increment();
@@ -195,14 +243,71 @@ class calendar
         int seconds_past_midnight() const;
         /** Returns the current light level of the moon. */
         moon_phase moon() const;
-        /** Returns the current sunrise time based on the time of year. */
+
+        /**
+         * Calculates the time sunrise for the current day
+         *
+         * Calculates the time of the next sunrise.  This is when the sun actually moves above the
+         * horizon and for game purposes is the start of full daylight.
+         *
+         * This is for the current calendar day, so it may occur in the past
+         */
         calendar sunrise() const;
-        /** Returns the current sunset time based on the time of year. */
+
+        /**
+         * Calculates time of sunset for current day
+         *
+         * Calculates the time of the next sunset.  This is the start of twilight on the current day,
+         * when the sun has just dipped below the horizon.  After this point, the sunlight slowly
+         * begins to fall until reaching full darkness.
+         *
+         * This is for the current calendar day, so it may occur in the past
+         */
         calendar sunset() const;
-        /** Returns true if it's currently after sunset + TWILIGHT_SECONDS or before sunrise - TWILIGHT_SECONDS. */
+
+        /**
+         * Calculate start of dawn for current day
+         *
+         * Calculates the time of the next dawn period.  This is the start of twilight on the current
+         * day, and is seasonally adjusted.  After this time, sunlight transitions from zero to full
+         * daylight.
+         *
+         * For game purposes, this corresponds roughly to start of nautical twilight.
+         *
+         * This is for the current calendar day, so it may occur in the past
+         */
+        calendar start_of_dawn() const;
+
+        /**
+         * Calculate end of dusk for the current day
+         *
+         * Calculates the time of the next dusk period.  This is the end of twilight on the current
+         * day, and is seasonally adjusted.  After this time, sunlight is effectively zero, and the
+         * only natural light is moonlight.
+         *
+         * For game purposes, this corresponds roughly to end of nautical twilight.
+         *
+         * This is for the current calendar day, so it may occur in the past
+         */
+        calendar end_of_dusk() const;
+
+        /**
+         * Indicate which part of the day it is
+         *
+         * Indicates whether it is day, night, dawn, or dusk.
+         *
+         * @returns current part of day we are in
+         */
+        day_phase part_of_day() const;
+
         bool is_night() const;
+        bool is_day() const;
+        bool is_dawn() const;
+        bool is_dusk() const;
+
         /** Returns the current seasonally-adjusted maximum daylight level */
         double current_daylight_level() const;
+
         /** Returns the current sunlight or moonlight level through the preceding functions. */
         float sunlight() const;
 

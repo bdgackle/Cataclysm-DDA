@@ -111,76 +111,109 @@ calendar::operator int() const
     return turn_number;
 }
 
-calendar &calendar::operator =(int rhs)
+calendar &calendar::operator =( int rhs )
 {
     turn_number = rhs;
     sync();
     return *this;
 }
 
-calendar &calendar::operator -=(const calendar &rhs)
+calendar &calendar::operator -=( const calendar &rhs )
 {
     turn_number -= rhs.turn_number;
     sync();
     return *this;
 }
 
-calendar &calendar::operator -=(int rhs)
+calendar &calendar::operator -=( int rhs )
 {
     turn_number -= rhs;
     sync();
     return *this;
 }
 
-calendar &calendar::operator +=(const calendar &rhs)
+calendar &calendar::operator +=( const calendar &rhs )
 {
     turn_number += rhs.turn_number;
     sync();
     return *this;
 }
 
-calendar &calendar::operator +=(int rhs)
+calendar &calendar::operator +=( int rhs )
 {
     turn_number += rhs;
     sync();
     return *this;
 }
 
-bool calendar::operator ==(int rhs) const
+bool calendar::operator <( const calendar &rhs ) const
 {
-    return int(*this) == rhs;
+    return turn_number < rhs.turn_number;
 }
-bool calendar::operator ==(const calendar &rhs) const
+
+bool calendar::operator <( int rhs ) const
+{
+    return turn_number < rhs;
+}
+
+bool calendar::operator <=( const calendar &rhs ) const
+{
+    return turn_number <= rhs.turn_number;
+}
+
+bool calendar::operator <=( int rhs ) const
+{
+    return turn_number <= rhs;
+}
+
+bool calendar::operator >( const calendar &rhs ) const
+{
+    return turn_number > rhs.turn_number;
+}
+
+bool calendar::operator >( int rhs ) const
+{
+    return turn_number > rhs;
+}
+
+bool calendar::operator >=( const calendar &rhs ) const
+{
+    return turn_number >= rhs.turn_number;
+}
+
+bool calendar::operator >=( int rhs ) const
+{
+    return turn_number >= rhs;
+}
+
+bool calendar::operator ==( const calendar &rhs ) const
 {
     return turn_number == rhs.turn_number;
 }
 
-/*
-calendar& calendar::operator ++()
+bool calendar::operator ==( int rhs ) const
 {
- *this += 1;
- return *this;
+    return int( *this ) == rhs;
 }
-*/
 
-calendar calendar::operator -(const calendar &rhs) const
+calendar calendar::operator -( const calendar &rhs ) const
 {
     return calendar(*this) -= rhs;
 }
 
-calendar calendar::operator -(int rhs) const
+calendar calendar::operator -( int rhs ) const
 {
-    return calendar(*this) -= rhs;
+    return calendar( *this ) -= rhs;
 }
 
-calendar calendar::operator +(const calendar &rhs) const
+calendar calendar::operator +( const calendar &rhs ) const
 {
-    return calendar(*this) += rhs;
+    return calendar( *this ) += rhs;
 }
 
-calendar calendar::operator +(int rhs) const
+calendar calendar::operator +( int rhs ) const
 {
-    return calendar(*this) += rhs;
+    return calendar( *this ) += rhs;
 }
 
 void calendar::increment()
@@ -215,125 +248,132 @@ moon_phase calendar::moon() const
 
 calendar calendar::sunrise() const
 {
-    int start_hour = 0, end_hour = 0, newhour = 0, newminute = 0;
-    switch (season) {
-    case SPRING:
-        start_hour = SUNRISE_EQUINOX;
-        end_hour   = SUNRISE_SUMMER;
-        break;
-    case SUMMER:
-        start_hour = SUNRISE_SUMMER;
-        end_hour   = SUNRISE_EQUINOX;
-        break;
-    case AUTUMN:
-        start_hour = SUNRISE_EQUINOX;
-        end_hour   = SUNRISE_WINTER;
-        break;
-    case WINTER:
-        start_hour = SUNRISE_WINTER;
-        end_hour   = SUNRISE_EQUINOX;
-        break;
+    double time = 0;
+    switch( season ) {
+        case SPRING:
+            time = interpolate_within_season( SUNRISE_EQUINOX, SUNRISE_SUMMER );
+            break;
+
+        case SUMMER:
+            time = interpolate_within_season( SUNRISE_SUMMER, SUNRISE_EQUINOX );
+            break;
+
+        case AUTUMN:
+            time = interpolate_within_season( SUNRISE_EQUINOX, SUNRISE_WINTER );
+            break;
+
+        case WINTER:
+            time = interpolate_within_season( SUNRISE_WINTER, SUNRISE_EQUINOX );
+            break;
     }
-    double percent = double(double(day) / season_length());
-    double time = double(start_hour) * (1. - percent) + double(end_hour) * percent;
 
-    newhour = int(time);
-    time -= int(time);
-    newminute = int(time * 60);
-
-    return calendar (newminute, newhour, day, season, year);
+    return calendar( 0, 0, day, season, year) + HOURS(time);
 }
 
 calendar calendar::sunset() const
 {
-    int start_hour = 0, end_hour = 0, newhour = 0, newminute = 0;
-    switch (season) {
-    case SPRING:
-        start_hour = SUNSET_EQUINOX;
-        end_hour   = SUNSET_SUMMER;
-        break;
-    case SUMMER:
-        start_hour = SUNSET_SUMMER;
-        end_hour   = SUNSET_EQUINOX;
-        break;
-    case AUTUMN:
-        start_hour = SUNSET_EQUINOX;
-        end_hour   = SUNSET_WINTER;
-        break;
-    case WINTER:
-        start_hour = SUNSET_WINTER;
-        end_hour   = SUNSET_EQUINOX;
-        break;
+    double time = 0;
+    switch( season ) {
+        case SPRING:
+            time = interpolate_within_season( SUNSET_EQUINOX, SUNSET_SUMMER );
+            break;
+
+        case SUMMER:
+            time = interpolate_within_season( SUNSET_SUMMER, SUNSET_EQUINOX );
+            break;
+
+        case AUTUMN:
+            time = interpolate_within_season( SUNSET_EQUINOX, SUNSET_WINTER );
+            break;
+
+        case WINTER:
+            time = interpolate_within_season( SUNSET_WINTER, SUNSET_EQUINOX );
+            break;
     }
-    double percent = double(double(day) / season_length());
-    double time = double(start_hour) * (1. - percent) + double(end_hour) * percent;
 
-    newhour = int(time);
-    time -= int(time);
-    newminute = int(time * 60);
+    return calendar( 0, 0, day, season, year) + HOURS(time);
+}
 
-    return calendar (newminute, newhour, day, season, year);
+calendar calendar::start_of_dawn() const
+{
+    return sunrise() - SECONDS( TWILIGHT_SECONDS );
+}
+
+calendar calendar::end_of_dusk() const
+{
+    return sunset() + SECONDS( TWILIGHT_SECONDS );
+}
+
+day_phase calendar::part_of_day() const
+{
+    if( *this < start_of_dawn() ) {
+        return NIGHT;
+    } else if( *this < sunrise() ) {
+        return DAWN;
+    } else if( *this < sunset() ) {
+        return DAY;
+    } else if( *this < end_of_dusk() ) {
+        return DUSK;
+    } else {
+        return NIGHT;
+    }
 }
 
 bool calendar::is_night() const
 {
-    int seconds         = seconds_past_midnight();
-    int sunrise_seconds = sunrise().seconds_past_midnight();
-    int sunset_seconds  = sunset().seconds_past_midnight();
+    return part_of_day() == NIGHT;
+}
 
-    return (seconds > sunset_seconds + TWILIGHT_SECONDS || seconds < sunrise_seconds);
+bool calendar::is_day() const
+{
+    return part_of_day() == DAY;
+}
+
+bool calendar::is_dawn() const
+{
+    return part_of_day() == DAWN;
+}
+
+bool calendar::is_dusk() const
+{
+    return part_of_day() == DUSK;
 }
 
 double calendar::current_daylight_level() const
 {
-    double percent = double(double(day) / season_length());
-    double modifier = 1.0;
     // For ~Boston: solstices are +/- 25% sunlight intensity from equinoxes
-    static double deviation = 0.25;
-    
-    switch (season) {
-    case SPRING:
-        modifier = 1. + (percent * deviation);
-        break;
-    case SUMMER:
-        modifier = (1. + deviation) - (percent * deviation);
-        break;
-    case AUTUMN:
-        modifier = 1. - (percent * deviation);
-        break;
-    case WINTER:
-        modifier = (1. - deviation) + (percent * deviation);
-        break;
+    double equinox_modifier = 1.0;
+    double winter_modifier = 0.75;
+    double summer_modifier = 1.25;
+
+    double modifier = 1.0;
+    switch( season ) {
+        case SPRING:
+            modifier = interpolate_within_season(equinox_modifier, summer_modifier);
+            break;
+
+        case SUMMER:
+            modifier = interpolate_within_season(summer_modifier, equinox_modifier);
+            break;
+
+        case AUTUMN:
+            modifier = interpolate_within_season(equinox_modifier, winter_modifier);
+            break;
+
+        case WINTER:
+            modifier = interpolate_within_season(winter_modifier, equinox_modifier);
+            break;
     }
-    
-    return double(modifier * DAYLIGHT_LEVEL);
+
+    return modifier * DAYLIGHT_LEVEL;
 }
 
 float calendar::sunlight() const
 {
-    int seconds = seconds_past_midnight();
-    int sunrise_seconds = sunrise().seconds_past_midnight();
-    int sunset_seconds = sunset().seconds_past_midnight();
-    double daylight_level = current_daylight_level();
+    float daylight = current_daylight_level() * twilight_ratio();
+    float moonlight = moon_quarters_lit() * MOONLIGHT_PER_QUARTER + 1;
 
-    int current_phase = int(moon());
-    if ( current_phase > int(MOON_PHASE_MAX)/2 ) {
-        current_phase = int(MOON_PHASE_MAX) - current_phase;
-    }
-
-    int moonlight = 1 + int(current_phase * MOONLIGHT_PER_QUARTER);
-
-    if( seconds > sunset_seconds + TWILIGHT_SECONDS || seconds < sunrise_seconds ) { // Night
-        return moonlight;
-    } else if( seconds >= sunrise_seconds && seconds <= sunrise_seconds + TWILIGHT_SECONDS ) {
-        double percent = double(seconds - sunrise_seconds) / TWILIGHT_SECONDS;
-        return double(moonlight) * (1. - percent) + daylight_level * percent;
-    } else if( seconds >= sunset_seconds && seconds <= sunset_seconds + TWILIGHT_SECONDS ) {
-        double percent = double(seconds - sunset_seconds) / TWILIGHT_SECONDS;
-        return daylight_level * (1. - percent) + double(moonlight) * percent;
-    } else {
-        return daylight_level;
-    }
+    return daylight + moonlight;
 }
 
 std::string calendar::print_clipped_duration( int turns )
@@ -589,6 +629,58 @@ void calendar::sync()
     hour = turn_number / HOURS(1) % 24;
     minute = turn_number / MINUTES(1) % 60;
     second = (turn_number * 6) % 60;
+}
+
+double calendar::interpolate_within_season( double start, double end ) const
+{
+    double percent_elapsed = double( double( day ) / season_length() );
+    return start * (1. - percent_elapsed) + end * percent_elapsed;
+}
+
+int calendar::moon_quarters_lit() const
+{
+    switch( moon() ) {
+        case MOON_NEW:
+            return 0;
+
+        case MOON_WAXING_CRESCENT: // Fall through
+        case MOON_WANING_CRESCENT:
+            return 1;
+
+        case MOON_HALF_MOON_WAXING: // Fall through
+        case MOON_HALF_MOON_WANING:
+            return 2;
+
+        case MOON_WAXING_GIBBOUS: // Fall through
+        case MOON_WANING_GIBBOUS:
+            return 3;
+
+        case MOON_FULL:
+            return 4;
+
+        default: // Shouldn't happen
+            return 0;
+    }
+}
+
+double calendar::twilight_ratio() const
+{
+    switch( part_of_day() ) {
+        case NIGHT:
+            return 0;
+
+        case DAWN:
+            return ( *this - start_of_dawn() ).turn_number / SECONDS(TWILIGHT_SECONDS);
+
+        case DAY:
+            return 1;
+
+        case DUSK:
+            return ( *this - end_of_dusk() ).turn_number / SECONDS(TWILIGHT_SECONDS);
+
+        default: // Shouldn't happen
+            return 0;
+    }
 }
 
 bool calendar::once_every(int event_frequency) {
