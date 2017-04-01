@@ -17,26 +17,43 @@ calendar calendar::start;
 calendar calendar::turn;
 season_type calendar::initial_season;
 
-// Internal constants, not part of the calendar interface.
-// Times for sunrise, sunset at equinoxes
+// Actual sunrise/sunset times below are for Concord, New Hampshire, which
+// makes a nice representative location for New England
+//
+// Note that the winter solstice time given is given as a constant offset from
+// UTC, so daylight savings time is effectively ignored.  This makes sense, since
+// Daylight Savings might be used to adjust clocks, but should not affect
+// observed day or night length.
+//
+// Sunrise to sunset times:
+// Summer solstice (Jun 21) : 05:06 to 20:29
+// Winter solstice (Dec 21) : 08:15 to 17:13
+//
+// Spring equinox  (Mar 21) : 06:47 to 18:59
+// Fall equinox    (Sep 21) : 06:32 to 18:44
+//
+// Nautical twilight varies from 69 to 82 minutes at this latitude, and would
+// appear shorter inland, so one hour is a good approximation for this
+//
+// The following internal constants are not part of the calendar interface.
 
 /** Hour of sunrise at winter solstice */
-#define SUNRISE_WINTER   7
+#define SUNRISE_WINTER 8
 
 /** Hour of sunrise at fall and spring equinox */
-#define SUNRISE_EQUINOX 6
+#define SUNRISE_EQUINOX 7
 
 /** Hour of sunrise at summer solstice */
-#define SUNRISE_SUMMER   5
+#define SUNRISE_SUMMER 5
 
 /** Hour of sunset at winter solstice */
-#define SUNSET_WINTER   17
+#define SUNSET_WINTER 17
 
 /** Hour of sunset at fall and spring equinox */
 #define SUNSET_EQUINOX 19
 
 /** Hour of setset at summer solstice */
-#define SUNSET_SUMMER   21
+#define SUNSET_SUMMER 20
 
 // How long, in seconds, does sunrise/sunset last?
 #define TWILIGHT_SECONDS (60 * 60)
