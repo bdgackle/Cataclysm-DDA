@@ -101,24 +101,21 @@ MonsterGroupResult MonsterGroupManager::GetResultFromGroup(
         valid_entry = valid_entry && (HOURS(it->starts) < calendar::turn.get_turn());
         valid_entry = valid_entry && (it->lasts_forever() || HOURS(it->ends) > calendar::turn.get_turn());
 
-        std::vector<std::pair<int, int> > valid_times_of_day;
+        bool time_of_day_limited = false;
+        bool time_of_day_matched = false;
         bool season_limited = false;
         bool season_matched = false;
         //Collect the various spawn conditions, and then insure they are met appropriately
         for( auto &elem : it->conditions ) {
-            //Collect valid time of day ranges
+            //If we have any times listed, we know to limit by time, and if any time matches current time, we are good to spawn
             if( ( elem ) == "DAY" || ( elem ) == "NIGHT" || ( elem ) == "DUSK" ||
                 ( elem ) == "DAWN" ) {
-                int sunset = calendar::turn.sunset().get_turn();
-                int sunrise = calendar::turn.sunrise().get_turn();
-                if( ( elem ) == "DAY" ) {
-                    valid_times_of_day.push_back( std::make_pair(sunrise, sunset) );
-                } else if( ( elem ) == "NIGHT" ) {
-                    valid_times_of_day.push_back( std::make_pair(sunset, sunrise) );
-                } else if( ( elem ) == "DUSK" ) {
-                    valid_times_of_day.push_back( std::make_pair(sunset - HOURS(1), sunset + HOURS(1)) );
-                } else if( ( elem ) == "DAWN" ) {
-                    valid_times_of_day.push_back( std::make_pair(sunrise - HOURS(1), sunrise + HOURS(1)) );
+                time_of_day_limited = true;
+                if( ( calendar::turn.is_night() && ( elem ) == "NIGHT" ) ||
+                    ( calendar::turn.is_day()   && ( elem ) == "DAY"   ) ||
+                    ( calendar::turn.is_dawn()  && ( elem ) == "DAWN"  ) ||
+                    ( calendar::turn.is_dusk()  && ( elem ) == "DUSK"  ) ) {
+                    season_matched = true;
                 }
             }
 
@@ -135,28 +132,9 @@ MonsterGroupResult MonsterGroupManager::GetResultFromGroup(
             }
         }
 
-        //Make sure the current time of day is within one of the valid time ranges for this spawn
-        bool is_valid_time_of_day = false;
-        if(valid_times_of_day.size() < 1) {
-            //Then it can spawn whenever, since no times were defined
-            is_valid_time_of_day = true;
-        } else {
-            //Otherwise, it's valid if it matches any of the times of day
-            for( auto &elem : valid_times_of_day ) {
-                int time_now = calendar::turn.get_turn();
-                if( time_now > elem.first && time_now < elem.second ) {
-                    is_valid_time_of_day = true;
-                }
-            }
-        }
-        if(!is_valid_time_of_day) {
-            valid_entry = false;
-        }
-
-        //If we are limited by season, make sure we matched a season
-        if(season_limited && !season_matched) {
-            valid_entry = false;
-        }
+        //If we are limited by time or season, make sure we matched
+        valid_entry = valid_entry && ( !time_of_day_limited || time_of_day_matched );
+        valid_entry = valid_entry && ( !season_limited || season_matched );
 
         //If the entry was valid, check to see if we actually spawn it
         if(valid_entry) {
