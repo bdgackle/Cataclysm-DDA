@@ -371,7 +371,7 @@ double calendar::current_daylight_level() const
 float calendar::sunlight() const
 {
     float daylight = current_daylight_level() * twilight_ratio();
-    float moonlight = moon_quarters_lit() * MOONLIGHT_PER_QUARTER + 1;
+    float moonlight = moon_quarters_lit() * MOONLIGHT_PER_QUARTER + 1 * twilight_ratio();
 
     return daylight + moonlight;
 }
