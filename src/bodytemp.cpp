@@ -102,3 +102,11 @@ void BodyTemperature::update_temperatures()
         bodyparts[i].current = int( diff *  + bodyparts[i]
     }
 }
+
+void BodyTemperature::temp_equalizer( body_part bp1, body_part bp2 )
+{
+    // Body heat is moved around.
+    // Shift in one direction only, will be shifted in the other direction separately.
+    int diff = int( ( temp_cur[bp2] - temp_cur[bp1] ) * 0.0001 ); // If bp1 is warmer, it will lose heat
+    temp_cur[bp1] += diff;
+}
