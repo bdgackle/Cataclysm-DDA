@@ -16,7 +16,8 @@ struct BodyPartTemperatures {
     int frostbite_counter;
 }
 
-class BodyTemperature {
+class BodyTemperature
+{
         /**
          * Add heat to body parts because of huddling over fire
          *
@@ -82,7 +83,7 @@ void BodyTemperature::add_bonus_fire_warmth( int fire_intensity, bool is_sitting
     bodyparts[pb_hand_r].bonus_warmth += hand_bonus;
 
     // Feet, can put near flame if we can physically get them there
-    const int foot_bonus = fire_intensity * (is_sitting ? 1000 : 300);
+    const int foot_bonus = fire_intensity * ( is_sitting ? 1000 : 300 );
     bodyparts[pb_foot_l].bonus_warmth += hand_bonus;
     bodyparts[pb_foot_r].bonus_warmth += hand_bonus;
 }
