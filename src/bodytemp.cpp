@@ -8,7 +8,7 @@
 struct BodyPartTemperatures {
     /** Current temperature of this body part */
     int current;
-    /** Temperature that this part is currently converging towards */
+    /** Equalibrium temperature of this part, as a function of environment */
     int converging;
     /** Bonus heat that a character has easy control over */
     int bonus;
@@ -38,6 +38,23 @@ class BodyTemperature
         int add_bonus_fire_warmth( int fire_intensity, bool is_sitting );
 
         /**
+         * Equalize all body parts
+         *
+         * Heat slowly flows from warmer to colder body parts to simulate blood flow
+         */
+        void equalize_all_parts();
+
+        /**
+         * Do one tick worth of temperature equalization between body parts.
+         *
+    f    * Calculates heat flow in one direction from a source to a sink body part.  The sink
+         * gets warmer if the source is warmer, and vice versa.
+         *
+         * Rate of flow is controlled by @ref BodyTemperature::equalization_factor
+         */
+        void equalize_single_part( body_part sink, body_part source );
+
+        /**
          * Apply all types of "bonus" heat sources to all body parts.
          *
          * Certain types of warmth are "optional" for a character and are only applied if the
@@ -58,9 +75,14 @@ class BodyTemperature
     private:
         /** Temperature state data for all body parts */
         std::array<BodyPartModel, num_pb> bodyparts;
+
+        /** How quickly body part temperatures equalize per tick */
+        static const float equalization_factor;
 };
 
 /********************************************************************************/
+
+float BodyTemperature::equalization_factor = 0.0001;
 
 void BodyTemperature::add_bonus_fire_warmth( int fire_intensity, bool is_sitting )
 {
@@ -82,7 +104,7 @@ void BodyTemperature::add_bonus_fire_warmth( int fire_intensity, bool is_sitting
     bodyparts[pb_hand_l].bonus_warmth += hand_bonus;
     bodyparts[pb_hand_r].bonus_warmth += hand_bonus;
 
-    // Feet, can put near flame if we can physically get them there
+    // Feet, can put near flame if we are sitting
     const int foot_bonus = fire_intensity * ( is_sitting ? 1000 : 300 );
     bodyparts[pb_foot_l].bonus_warmth += hand_bonus;
     bodyparts[pb_foot_r].bonus_warmth += hand_bonus;
@@ -90,10 +112,12 @@ void BodyTemperature::add_bonus_fire_warmth( int fire_intensity, bool is_sitting
 
 void BodyTemperature::apply_bonus_warmth()
 {
+    // TODO
 }
 
 void BodyTemperature::update_temperatures()
 {
+    // TODO
     for( int i = 0; i < num_pb; i++ ) {
         // Do nothing if this part has already converged
         if( bodyparts[i].current == bodyparts[i].converging ) {
@@ -104,10 +128,60 @@ void BodyTemperature::update_temperatures()
     }
 }
 
-void BodyTemperature::temp_equalizer( body_part bp1, body_part bp2 )
+void BodyTemperature::equalize_single_part( body_part sink, body_part source )
 {
     // Body heat is moved around.
     // Shift in one direction only, will be shifted in the other direction separately.
-    int diff = int( ( temp_cur[bp2] - temp_cur[bp1] ) * 0.0001 ); // If bp1 is warmer, it will lose heat
-    temp_cur[bp1] += diff;
+    // If bp1 is warmer, it will lose heat
+    int diff = bodyparts[source].current - bodyparts[sink].current;
+    int flow = int( diff * equalization_factor );
+    bodyparts[sink].current += flow;
+}
+
+void BodyTemperature::equalize_all_parts()
+{
+        // Flow from extremities to torso
+        equalize_single_part( bp_torso, bp_arm_l );
+        equalize_single_part( bp_torso, bp_arm_r );
+        equalize_single_part( bp_torso, bp_leg_l );
+        equalize_single_part( bp_torso, bp_leg_r );
+        equalize_single_part( bp_torso, bp_head );
+
+        case bp_head:
+            // 
+            equalize_single_part( bp_head, bp_torso );
+            equalize_single_part( bp_head, bp_mouth );
+            break;
+        case bp_arm_l:
+            equalize_single_part( bp_arm_l, bp_torso );
+            equalize_single_part( bp_arm_l, bp_hand_l );
+            break;
+        case bp_arm_r:
+            equalize_single_part( bp_arm_r, bp_torso );
+            equalize_single_part( bp_arm_r, bp_hand_r );
+            break;
+        case bp_leg_l:
+            equalize_single_part( bp_leg_l, bp_torso );
+            equalize_single_part( bp_leg_l, bp_foot_l );
+            break;
+        case bp_leg_r:
+            equalize_single_part( bp_leg_r, bp_torso );
+            equalize_single_part( bp_leg_r, bp_foot_r );
+            break;
+        case bp_mouth:
+            equalize_single_part( bp_mouth, bp_head );
+            break;
+        case bp_hand_l:
+            equalize_single_part( bp_hand_l, bp_arm_l );
+            break;
+        case bp_hand_r:
+            equalize_single_part( bp_hand_r, bp_arm_r );
+            break;
+        case bp_foot_l:
+            equalize_single_part( bp_foot_l, bp_leg_l );
+            break;
+        case bp_foot_r:
+            equalize_single_part( bp_foot_r, bp_leg_r );
+            break;
+        default:
 }
